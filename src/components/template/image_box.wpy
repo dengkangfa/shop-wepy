@@ -1,0 +1,13 @@
+<template>
+    <view class="image-box row-around" style="background-color: {{param.backgroundColor}};padding: {{param.padding}} 0;">
+
+    </view>
+</template>
+
+<script>
+
+</script>
+
+<style>
+
+</style>

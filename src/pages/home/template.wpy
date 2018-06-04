@@ -1,0 +1,130 @@
+<template>
+    <Loading :init.sync="init"/>
+    <view class="template-box" wx:if="{{init}}">
+        <repeat for="{{components}}" key="index" index="index" item="item">
+            <!--搜索栏-->
+            <block wx:if="{{ item.type == 'SEARCH_BAR' }}">
+                <SearchBar :param.sync="item"/>
+            </block>
+
+            <!-- 店铺信息 -->
+            <block wx:if="{{ item.type == 'SHOP_BAR' }}">
+                <ShopBar :param.sync="item"/>
+            </block>
+
+            <!--轮播图-->
+            <block wx:if="{{ item.type == 'SWIPER' }}">
+                <SwiperBar :param.sync="item"/>
+            </block>
+
+            <block wx:if="{{item.type == 'IMAGE_BOX'}}">
+                <ImageBox :param.sync="item"></ImageBox>
+            </block>
+        </repeat>
+    </view>
+</template>
+
+<script>
+    import store from '../../store/utils';
+    import {connect} from 'wepy-redux';
+    import wepy from 'wepy';
+    import auth from '../../api/auth';
+    import config from '../../api/config';
+    import base from '../../mixins/base';
+    import Loading from '../../components/common/loading';
+    import SearchBar from '../../components/template/search_bar';
+    import SwiperBar from '../../components/template/swiper_bar';
+    import ShopBar from '../../components/shop/header';
+    import ImageBox from '../../components/template/image_box';
+
+    @connect({
+        homePageId: store.get('homePageId')
+    })
+    export default class IndexTemplate extends wepy.page {
+        data = {
+            pageId:null,
+            init: false,
+            components: null,
+            sence: null,
+            param: null
+        };
+        async onLoad({pageId, sence}) {
+            await auth.login();
+            await store.init();
+            this.sence = sence
+            if (pageId) {
+                console.info(`[template] load template page id=${pageId}`);
+                this.pageId = pageId;
+            } else if (this.homePageId) {
+                console.info(`[template] load home page`);
+                this.pageId = this.homePageId;
+            }
+            const page = await await config.layout(this.pageId);
+            this.renderTemplatePage(page);
+            console.info(`[template] render template page success`);
+            this.loaded();
+            // 渲染导航栏
+            this.renderNavigationBar();
+            // 执行触发器
+            this.runTriggers();
+        }
+
+        renderTemplatePage(page) {
+            this.components = page.components;
+            this.plugins = page.plugins;
+            this.triggers = page.triggers;
+            this.param = page.param;
+        }
+
+        // 渲染标题栏
+        renderNavigationBar() {
+            if (this.param.navigation == null) {
+                return;
+            }
+            const {titleText, backgroundColor, textStyle} = this.param.navigation;
+            if (titleText) {
+                wepy.setNavigationBarTitle({
+                    title: titleText
+                });
+            }
+            if (backgroundColor && textStyle) {
+                wepy.setNavigationBarColor({
+                    backgroundColor: backgroundColor,
+                    frontColor: textStyle
+                });
+            }
+        }
+
+        // 运行触发器
+        runTriggers() {
+            this.triggers.forEach(trigger => {
+                const methodName = trigger.method;
+                // 执行动态方法
+                if (methodName && typeof this[methodName] == 'function') {
+                    const triggerMethod = this[methodName].bind(this);
+                    triggerMethod();
+                }
+            })
+        }
+        components = {
+            Loading: Loading,
+            SearchBar: SearchBar,
+            ShopBar: ShopBar,
+            SwiperBar: SwiperBar
+        };
+        mixins = [base];
+    }
+</script>
+
+<style lang="scss">
+    @import "../../styles/variable";
+    .template-box {
+        width: 100%;
+        overflow-x: hidden;
+        .h-gap {
+            width: 100%;
+            height: 1px;
+            background-color: $color-border;
+        }
+    }
+</style>

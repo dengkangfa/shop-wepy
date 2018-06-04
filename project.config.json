@@ -1,0 +1,16 @@
+{
+	"description": "A WePY project",
+	"setting": {
+		"urlCheck": true,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx3bf3c4ee39605195",
+	"projectname": "leshare-shop",
+	"miniprogramRoot": "./dist",
+	"libVersion": "2.0.8",
+	"condition": {}
+}

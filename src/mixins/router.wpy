@@ -1,0 +1,22 @@
+<script>
+    import wepy from 'wepy'
+    export default class router extends wepy.mixin {
+        config = {};
+        components = {};
+
+        // 判断是否为TAB
+        isTab() {
+            const type = wepy.$instance.globalData.shopType;
+            return type == 1;
+        }
+
+        // 跳转到首页
+        routeToHome() {
+            if (this.isTab()) {
+                this.$root.$switch('pages/home/template');
+            } else {
+                this.$root.$navigate('pages/home/home');
+            }
+        }
+    }
+</script>

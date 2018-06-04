@@ -2,19 +2,15 @@ const path = require('path');
 let prod = process.env.NODE_ENV === 'production';
 
 module.exports = {
-  eslint: true,
+  eslint: false,
   wpyExt: ".wpy",
   build: {
     web: {
-      apis: ['showToast', 'showActionSheet', 'showModal'],
-      components: ['navigator', 'button', 'icon', 'progress', 'slider', 'radio', 'radio-group', 'checkbox', 'checkbox-group', 'switch'],
-      htmlTemplate: path.join('src', 'index.template.html'),
-      htmlOutput: path.join('web', 'index.html'),
-      jsOutput: path.join('web', 'index.js')
     }
   },
   compilers: {
-    less: {
+    sass: {
+      outputStyle: 'compact'
     },
     babel: {
       sourceMap: true,
@@ -25,6 +21,7 @@ module.exports = {
       plugins: [
         "transform-export-extensions",
         "syntax-export-extensions",
+        'transform-decorators-legacy'
       ]
     }
   }
@@ -36,7 +33,7 @@ if (prod) {
   delete module.exports.compilers.babel.sourcesMap;
 
   // 压缩less
-  module.exports.compilers['less'] = {compress: true}
+  module.exports.compilers['sass'] = {outputStyle: 'compressed'};
 
   // 压缩js
   module.exports.plugins = {

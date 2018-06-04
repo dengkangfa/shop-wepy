@@ -1,99 +1,146 @@
-<style lang="less">
-@import './style/weui.less';
-page{
-    background-color: #F8F8F8;
-    font-size: 16px;
-    font-family: -apple-system-font,Helvetica Neue,Helvetica,sans-serif;
-}
-.page__hd {
-    padding: 40px;
-}
-.page__bd {
-    padding-bottom: 40px;
-}
-.page__bd_spacing {
-    padding-left: 15px;
-    padding-right: 15px;
-}
-
-.page__ft{
-    padding-bottom: 10px;
-    text-align: center;
-}
-
-.page__title {
-    text-align: left;
-    font-size: 20px;
-    font-weight: 400;
-}
-
-.page__desc {
-    margin-top: 5px;
-    color: #888888;
-    text-align: left;
-    font-size: 14px;
-}
-</style>
-
+<style lang="scss" src="./styles/weui.scss"></style>
+<style lang="scss" src="./styles/icons.scss"></style>
+<style lang="scss" src="./styles/base.scss"></style>
 <script>
+    import wepy from 'wepy';
+    import 'wepy-async-function';
+    import WxUtils from './utils/WxUtils';
+    import {setStore} from 'wepy-redux';
+    import configStore from './store';
+    const store = configStore();
+    setStore(store);
 
-import wepy from 'wepy';
-import 'wepy-async-function';
-
-export default class extends wepy.app {
-
-    config = {
-        'pages': [
-            'example/index',
-            'example/button',
-            'example/list',
-            'example/input',
-            'example/slider',
-            'example/uploader',
-
-            'example/article',
-            'example/badge',
-            'example/flex',
-            'example/footer',
-            'example/gallery',
-            'example/grid',
-            'example/icons',
-            'example/loadmore',
-            'example/panel',
-            'example/preview',
-            'example/progress',
-
-            'example/actionsheet',
-            'example/dialog',
-            'example/msg',
-            'example/msg_fail',
-            'example/msg_success',
-            'example/picker',
-            'example/toast',
-
-            'example/navbar',
-            'example/tabbar',
-
-            'example/searchbar'
-        ],
-        'window': {
-            'navigationBarTextStyle': 'black',
-            'navigationBarTitleText': 'WeUI in WePY',
-            'navigationBarBackgroundColor': '#f8f8f8',
-            'backgroundColor': '#f8f8f8'
-        },
-        'networkTimeout': {
-            'request': 10000,
-            'connectSocket': 10000,
-            'uploadFile': 10000,
-            'downloadFile': 10000
+    export default class extends wepy.app {
+        globalData = {
+            auth: {},
+            scene: null,
+            shopType: '1',
+            baseUrl: 'https://www.easy-mock.com/mock/5ab7c9627a7afd3099d16b4c/customer',
+            appCode: 'owVHb1gHrvktni80kjMlFMzSDJDWY0xR',
+            pageParams: {
+                'pages/goods/category': {
+                    buyPanelType: 'POPUP',
+                    isCoupon: false
+                },
+                'pages/goods/detail': {
+                    buyPanelType: 'SLIDER',
+                    cartType: 'BAR',
+                    isCoupon: true,
+                    isComment: true,
+                    isContact: true,
+                    isShare: true,
+                    isSales: true
+                },
+                'pages/goods/search': {
+                    hotKeywords: [
+                        '抽纸',
+                        '卷纸',
+                        '面巾纸',
+                        '卫生巾',
+                        '湿纸巾',
+                        '维达',
+                        '维达',
+                        '波斯猫',
+                        '妙洁'
+                    ]
+                }
+            }
         }
-    };
 
-    constructor () {
-        super();
-        this.use('promisify');
-        this.use('requestfix');
+        constructor() {
+            super();
+            this.use('promisify');
+            this.use('requestfix');
+        }
+
+        onLaunch(param) {
+            // 校验SDK
+            WxUtils.checkSDK()
+            const ext = wepy.getExtConfigSync()
+            console.info('[ext] init ext data', ext)
+            if (ext.globalConfig) {
+                console.info('[ext] init ext global config data', ext.globalConfig)
+                Object.assign(ext, ext.globalConfig)
+            }
+            Object.assign(wepy.$instance.globalData, ext)
+            // 同步权限数据
+            this.syncStoreConfig('login_code')
+            this.syncStoreConfig('third_session')
+            this.syncStoreConfig('user')
+            // 保存场景值
+            if (param && param.scene) {
+                console.info('[scene]onLaunch scene', param.scene)
+                wepy.$instance.globalData.scene = param.scene
+                console.info('[auth]onLaunch end')
+            }
+        }
+
+        syncStoreConfig(key) {
+            try {
+                const value = wepy.getStorageSync(key)
+                if (value !== '') {
+                    console.info(`[auth]${key} sync success`)
+                    wepy.$instance.globalData.auth[key] = value
+                }
+            } catch (e) {
+                console.warn(`[auth]${key} sync fail`)
+            }
+        }
+
+        config = {
+            'pages': [
+                'pages/home/template'
+            ],
+            'window': {
+                'navigationBarTextStyle': 'black',
+                'navigationBarTitleText': '首页',
+                'navigationBarBackgroundColor': '#f8f8f8',
+                'backgroundColor': '#f8f8f8'
+            },
+            'tabBar': {
+                'color': '#999999',
+                'selectedColor': '#333333',
+                'borderStyle': '#999999',
+                'backgroundColor': '#eeeeee',
+                'list': [
+                    {
+                        'iconPath': 'images/tab/home.png',
+                        'selectedIconPath': 'images/tab/home-active.png',
+                        'pagePath': 'pages/home/template',
+                        'text': '首页'
+                    },
+                    {
+                        'iconPath': 'images/tab/category.png',
+                        'selectedIconPath': 'images/tab/category-active.png',
+                        'pagePath': 'pages/home/template',
+                        'text': '分类'
+                    },
+                    {
+                        'iconPath': 'images/tab/message.png',
+                        'selectedIconPath': 'images/tab/message-active.png',
+                        'pagePath': 'pages/home/template',
+                        'text': '消息'
+                    },
+                    {
+                        'iconPath': 'images/tab/cart.png',
+                        'selectedIconPath': 'images/tab/cart-active.png',
+                        'pagePath': 'pages/home/template',
+                        'text': '购物车'
+                    },
+                    {
+                        'iconPath': 'images/tab/me.png',
+                        'selectedIconPath': 'images/tab/me-active.png',
+                        'pagePath': 'pages/home/template',
+                        'text': '我的'
+                    }
+                ]
+            },
+            'networkTimeout': {
+                'request': 10000,
+                'connectSocket': 10000,
+                'uploadFile': 10000,
+                'downloadFile': 10000
+            }
+        }
     }
-}
 </script>
